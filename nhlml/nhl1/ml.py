@@ -6,12 +6,17 @@ import sys
 from sklearn.model_selection import train_test_split
 import os
 
-#!/usr/bin/env python3
 
+#Main machine learning file. This file pulls the information from the created CSV's and runs a ML program on it, then predicts off of 
+#Up to date team average stats. The program runs 1000 times, and creates an average win percentage off of these 1000 'games' played.
+#
 def main():
+
+    #Open the csv's that were created by the other two files.
     game_stats = pd.read_csv('game_stats.csv', header = 0)
     averages = pd.read_csv('averages.csv', header = 0)
 
+    #Pull the columns that are associated with the X in the ML program.
     X = game_stats[['away_powerPlayPercentage',
                 'away_savePctg',
                 'away_shootingPctg',
@@ -29,10 +34,11 @@ def main():
                 'home_powerplayspergame',
                 'home_faceOffWinPercentage',
                 ]]
+    #Get the result of each game.
     Y = game_stats.iloc[:,-1]
 
     
-
+    #Translate the command line instructions into their actual team name so that the program can pull the averages.
     dict = {'njd':'New Jersey Devils',
             'nyi': 'New York Islanders',
             'nyr': 'New York Rangers',
@@ -68,7 +74,7 @@ def main():
     
 
     
-    
+    #Numpy array for running program.
     Y = Y.to_numpy()
     X = X.to_numpy()
     
@@ -78,6 +84,7 @@ def main():
     home_teams = []
     away_teams = []
 
+    #Make a list of all games that want to be predicted.
     teams = sys.argv[1:]
     for j in range(len(teams)):
         if j % 2 == 0:
@@ -86,7 +93,7 @@ def main():
             home_teams.append(teams[j])
 
         
-
+    #For each game being predicted, predict 1000 times and make a percentage of won games.
     for k in range(len(away_teams)):
 
         away = dict[away_teams[k]]
@@ -121,6 +128,7 @@ def main():
         
         for i in range(1000):
 
+            #The ML
             train_X, test_X, train_Y, test_Y = train_test_split(X, Y, test_size=0.2)
             clf = MLPClassifier()
             clf.fit(train_X, train_Y)
@@ -140,7 +148,8 @@ def main():
             per = len(away_arr) / 10
             msg = str(dict[away_teams[k]]) + ' %' + str(per)
         notify(subtitle=sub, message=msg)
-        
+
+#Print the result to the mac notification panel.       
 def notify(subtitle, message):
     t = '-title {!r}'.format('NHL1')
     s = '-subtitle {!r}'.format(subtitle)
